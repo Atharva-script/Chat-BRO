@@ -4,7 +4,7 @@ const axios = require('axios');
 const BASE_URL = 'http://localhost:3000';
 
 async function testBackend() {
-    console.log('🧪 Testing AI Chatbot Backend...\n');
+    console.log('🧪 Testing ChatBRO Backend...\n');
     
     try {
         // Test 1: Check if server is running

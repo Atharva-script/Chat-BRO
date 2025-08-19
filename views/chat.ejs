@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot - Chat Interface</title>
+    <title>ChatBRO - Chat Interface</title>
     <link rel="stylesheet" href="/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <link rel="icon" href="/images/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" href="/images/logo.png">
+    <link rel="apple-touch-icon" href="/images/logo.png">
 </head>
 <body>
     <!-- Header -->
@@ -15,7 +18,7 @@
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <i class="fas fa-robot"></i> AI Chatbot
+                    <img src="/images/logo.png" alt="ChatBRO logo" class="logo-image"> ChatBRO
                 </div>
                 <nav>
                     <ul class="nav-menu">
@@ -39,20 +42,12 @@
                     </div>
                 </div>
                 <!-- Compact chat search bar in header -->
-                <form id="chatForm" class="chat-search">
-                    <input type="text" id="messageInput" class="search-input" placeholder="Type your message here..." maxlength="500">
+                <form id="chatForm" class="chat-search" autocomplete="off">
+                    <input type="text" id="messageInput" class="search-input" placeholder="Type your message here..." maxlength="500" autocomplete="off">
                     <button type="submit" id="sendButton" class="send-icon" title="Send">
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
-                <div class="nav-actions">
-                    <button class="icon-btn" onclick="clearChat()" title="Clear Chat">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <button class="icon-btn" onclick="exportChat()" title="Export Chat">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>
                 <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
                     <i class="fas fa-bars"></i>
                 </button>
@@ -74,6 +69,15 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Chat Actions (bottom) -->
+                    <div class="chat-actions" id="chatActions" style="display:none;">
+                        <button class="action-icon" onclick="clearChat()" title="Clear Chat">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="action-icon" onclick="exportChat()" title="Export Chat">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
                 
             </div>
         </div>
@@ -82,7 +86,7 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 AI Chatbot. Built with Express, EJS, and modern web technologies.</p>
+            <p>&copy; 2024 ChatBRO. Built with Express, EJS, and modern web technologies.</p>
         </div>
     </footer>
 

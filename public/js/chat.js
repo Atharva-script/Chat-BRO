@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentModelInfo = document.getElementById('currentModelInfo');
     const messageCount = document.getElementById('messageCount'); // may be null
     const connectionStatus = document.getElementById('connectionStatus'); // may be null
+    const chatActions = document.getElementById('chatActions'); // bottom actions (clear/export)
     
     // State variables
     let currentModel = '';
@@ -35,6 +36,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set initial state
         updateMessageCount();
         updateConnectionStatus('Ready');
+        if (chatActions) {
+            chatActions.style.display = 'none';
+        }
         
         console.log('Chat initialized successfully');
     }
@@ -263,6 +267,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update counts and scroll
         updateMessageCount();
         scrollToBottomDelayed(150);
+
+        // Hide actions while awaiting AI response
+        if (chatActions) {
+            chatActions.style.display = 'none';
+        }
     }
     
     // Add AI message to chat
@@ -288,6 +297,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update counts and scroll
         updateMessageCount();
         forceScrollToBottom();
+
+        // Show actions after AI finishes responding
+        if (chatActions) {
+            chatActions.style.display = 'flex';
+        }
     }
     
     // Add system message to chat
@@ -335,6 +349,11 @@ document.addEventListener('DOMContentLoaded', function() {
         scrollToBottomDelayed(200);
         
         updateSendButtonState();
+
+        // Hide actions while typing
+        if (chatActions) {
+            chatActions.style.display = 'none';
+        }
     }
     
     // Hide typing indicator
@@ -455,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             // Format chat history
-            let exportText = `AI Chatbot Conversation - ${new Date().toLocaleString()}\n`;
+            let exportText = `ChatBRO Conversation - ${new Date().toLocaleString()}\n`;
             exportText += `Model: ${currentModel ? getModelDisplayName(currentModel) : 'None'}\n`;
             exportText += '='.repeat(50) + '\n\n';
             
