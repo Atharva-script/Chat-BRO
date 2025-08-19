@@ -3,110 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chatbot - Chat</title>
+    <title>AI Chatbot - Chat Interface</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>💬 AI Chat</h1>
-            <p>Chat with your configured AI models</p>
-        </header>
-
-        <nav class="navigation">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/chat" class="nav-link active">Chat</a>
-            <a href="/settings" class="nav-link">Settings</a>
-        </nav>
-
-        <main class="main-content">
-            <div class="chat-container">
-                <div class="chat-header">
-                    <h2>Select AI Model</h2>
-                    <div class="model-selector">
-                        <select id="modelSelector">
-                            <option value="">Choose a model...</option>
-                            <option value="openai" <%= apiKeys.openai ? '' : 'disabled' %>>OpenAI GPT</option>
-                            <option value="anthropic" <%= apiKeys.anthropic ? '' : 'disabled' %>>Anthropic Claude</option>
-                            <option value="google" <%= apiKeys.google ? '' : 'disabled' %>>Google Gemini</option>
-                            <option value="cohere" <%= apiKeys.cohere ? '' : 'disabled' %>>Cohere</option>
-                        </select>
-                        <span class="model-status" id="modelStatus"></span>
-                    </div>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-robot"></i> AI Chatbot
                 </div>
-
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message system-message">
-                        <div class="message-content">
-                            <p>👋 Welcome! Select an AI model from the dropdown above to start chatting. Make sure you've configured the API keys in the Settings page.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="chat-input-container">
-                    <form id="chatForm" class="chat-form">
-                        <div class="input-group">
-                            <input type="text" id="messageInput" placeholder="Type your message here..." maxlength="500">
-                            <button type="submit" id="sendButton" class="btn btn-primary" disabled>
-                                <span class="btn-text">Send</span>
-                                <span class="btn-loading" style="display: none;">⏳</span>
-                            </button>
-                        </div>
-                        <div class="input-info">
-                            <span class="char-count" id="charCount">0/500</span>
-                            <span class="typing-indicator" id="typingIndicator" style="display: none;">AI is typing...</span>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="chat-controls">
-                    <button class="btn btn-secondary" onclick="clearChat()">Clear Chat</button>
-                    <button class="btn btn-secondary" onclick="exportChat()">Export Chat</button>
-                </div>
-            </div>
-
-            <div class="chat-info">
-                <h3>Chat Information</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <strong>Current Model:</strong>
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/chat" class="active">Chat</a></li>
+                        <li><a href="/settings">Settings</a></li>
+                    </ul>
+                </nav>
+                <div class="model-selector">
+                    <label for="modelSelect">Choose AI Model:</label>
+                    <select id="modelSelect" name="model">
+                        <option value="">Select a model...</option>
+                        <option value="openai" <%= apiKeys.openai ? '' : 'disabled' %>>OpenAI GPT</option>
+                        <option value="anthropic" <%= apiKeys.anthropic ? '' : 'disabled' %>>Anthropic Claude</option>
+                        <option value="google" <%= apiKeys.google ? '' : 'disabled' %>>Google Gemini</option>
+                        <option value="cohere" <%= apiKeys.cohere ? '' : 'disabled' %>>Cohere</option>
+                    </select>
+                    <div class="model-info">
+                        <span>Current Model: </span>
                         <span id="currentModelInfo">None selected</span>
                     </div>
-                    <div class="info-item">
-                        <strong>Messages:</strong>
-                        <span id="messageCount">0</span>
-                    </div>
-                    <div class="info-item">
-                        <strong>Status:</strong>
-                        <span id="connectionStatus">Ready</span>
-                    </div>
                 </div>
-                
-                <div class="model-availability">
-                    <h4>Available Models:</h4>
-                    <ul>
-                        <li class="<%= apiKeys.openai ? 'available' : 'unavailable' %>">
-                            OpenAI GPT: <%= apiKeys.openai ? '✓ Available' : '⚠ No API Key' %>
-                        </li>
-                        <li class="<%= apiKeys.anthropic ? 'available' : 'unavailable' %>">
-                            Anthropic Claude: <%= apiKeys.anthropic ? '✓ Available' : '⚠ No API Key' %>
-                        </li>
-                        <li class="<%= apiKeys.google ? 'available' : 'unavailable' %>">
-                            Google Gemini: <%= apiKeys.google ? '✓ Available' : '⚠ No API Key' %>
-                        </li>
-                        <li class="<%= apiKeys.cohere ? 'available' : 'unavailable' %>">
-                            Cohere: <%= apiKeys.cohere ? '✓ Available' : '⚠ No API Key' %>
-                        </li>
-                    </ul>
+                <!-- Compact chat search bar in header -->
+                <form id="chatForm" class="chat-search">
+                    <input type="text" id="messageInput" class="search-input" placeholder="Type your message here..." maxlength="500">
+                    <button type="submit" id="sendButton" class="send-icon" title="Send">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+                <div class="nav-actions">
+                    <button class="icon-btn" onclick="clearChat()" title="Clear Chat">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="icon-btn" onclick="exportChat()" title="Export Chat">
+                        <i class="fas fa-download"></i>
+                    </button>
                 </div>
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
-        </main>
+        </div>
+    </header>
 
-        <footer class="footer">
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="chat-container">
+                <!-- Chat Main Area -->
+                <div class="chat-main">
+                    <!-- Chat Messages -->
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message system">
+                            <div class="message-content">
+                                <p><i class="fas fa-info-circle"></i> Welcome! Select an AI model from the dropdown above to start chatting. Make sure you've configured the API keys in the Settings page.</p>
+                            </div>
+                        </div>
+                    </div>
+                
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
             <p>&copy; 2024 AI Chatbot. Built with Express, EJS, and modern web technologies.</p>
-        </footer>
-    </div>
+        </div>
+    </footer>
 
+    <!-- Scripts -->
+    <script src="/js/main.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="/js/chat.js"></script>
+    
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const nav = document.querySelector('.nav-menu');
+            nav.classList.toggle('mobile-open');
+        }
+        
+        // Add ripple effect to buttons
+        function addRippleEffect(event) {
+            const button = event.currentTarget;
+            const ripple = document.createElement('span');
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
+            button.appendChild(ripple);
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add ripple effect to all buttons
+            const buttons = document.querySelectorAll('.btn, .send-button');
+            buttons.forEach(button => {
+                button.addEventListener('click', addRippleEffect);
+            });
+        });
+    </script>
 </body>
 </html>

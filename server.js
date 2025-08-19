@@ -174,7 +174,7 @@ async function callAnthropic(message, apiKey) {
 async function callGoogle(message, apiKey) {
     try {
         console.log('Making Google API request...');
-        const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             contents: [{
                 parts: [{ text: message }]
             }]

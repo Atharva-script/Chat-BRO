@@ -5,105 +5,190 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chatbot - Settings</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <header class="header">
-            <h1>⚙️ Settings</h1>
-            <p>Configure your AI model API keys</p>
-        </header>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-robot"></i> AI Chatbot
+                </div>
+                <nav>
+                    <ul class="nav-menu">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/chat">Chat</a></li>
+                        <li><a href="/settings" class="active">Settings</a></li>
+                    </ul>
+                </nav>
+                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
 
-        <nav class="navigation">
-            <a href="/" class="nav-link">Home</a>
-            <a href="/chat" class="nav-link">Chat</a>
-            <a href="/settings" class="nav-link active">Settings</a>
-        </nav>
-
-        <main class="main-content">
-            <div class="settings-section">
-                <h2>API Key Configuration</h2>
-                <p>Enter your API keys for the AI models you want to use. You can get these keys from their respective platforms:</p>
-                
-                <div class="api-keys-form">
-                    <form id="apiKeysForm">
-                        <div class="form-group">
-                            <label for="openai">OpenAI API Key</label>
-                            <input type="password" id="openai" name="openai" value="<%= apiKeys.openai %>" placeholder="sk-...">
-                            <small>Get your key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="anthropic">Anthropic API Key</label>
-                            <input type="password" id="anthropic" name="anthropic" value="<%= apiKeys.anthropic %>" placeholder="sk-ant-...">
-                            <small>Get your key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a></small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="google">Google API Key</label>
-                            <input type="password" id="google" name="google" value="<%= apiKeys.google %>" placeholder="AIza...">
-                            <small>Get your key from <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cohere">Cohere API Key</label>
-                            <input type="password" id="cohere" name="cohere" value="<%= apiKeys.cohere %>" placeholder="...">
-                            <small>Get your key from <a href="https://dashboard.cohere.ai/api-keys" target="_blank">Cohere Dashboard</a></small>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">Save API Keys</button>
-                            <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear All</button>
-                        </div>
-                    </form>
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="settings-container">
+                <!-- Settings Header -->
+                <div class="settings-header">
+                    <h1><i class="fas fa-cog"></i> API Configuration</h1>
+                    <p>Configure your AI model API keys to start chatting</p>
                 </div>
 
-                <div class="status-display">
-                    <h3>Current Status</h3>
-                    <div class="status-grid">
-                        <div class="status-item">
-                            <span class="status-label">OpenAI:</span>
-                            <span class="status-value <%= apiKeys.openai ? 'configured' : 'not-configured' %>">
-                                <%= apiKeys.openai ? '✓ Configured' : '⚠ Not Configured' %>
-                            </span>
+                <!-- Settings Form -->
+                <div class="settings-form">
+                    <form id="apiKeysForm">
+                        <!-- Status Display -->
+                        <div class="status-display">
+                            <div class="status-item">
+                                <div class="status-label">OpenAI:</div>
+                                <div class="status-value" id="openaiStatus">⚠ Not Configured</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-label">Anthropic:</div>
+                                <div class="status-value" id="anthropicStatus">⚠ Not Configured</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-label">Google:</div>
+                                <div class="status-value" id="googleStatus">⚠ Not Configured</div>
+                            </div>
+                            <div class="status-item">
+                                <div class="status-label">Cohere:</div>
+                                <div class="status-value" id="cohereStatus">⚠ Not Configured</div>
+                            </div>
                         </div>
-                        <div class="status-item">
-                            <span class="status-label">Anthropic:</span>
-                            <span class="status-value <%= apiKeys.anthropic ? 'configured' : 'not-configured' %>">
-                                <%= apiKeys.anthropic ? '✓ Configured' : '⚠ Not Configured' %>
-                            </span>
+
+                        <!-- API Key Inputs -->
+                        <div class="form-group">
+                            <label for="openai">
+                                <i class="fab fa-openai"></i> OpenAI API Key
+                            </label>
+                            <input type="password" id="openai" name="openai" placeholder="sk-..." value="<%= apiKeys.openai || '' %>">
+                            <small>
+                                Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a>
+                            </small>
                         </div>
-                        <div class="status-item">
-                            <span class="status-label">Google:</span>
-                            <span class="status-value <%= apiKeys.google ? 'configured' : 'not-configured' %>">
-                                <%= apiKeys.google ? '✓ Configured' : '⚠ Not Configured' %>
-                            </span>
+
+                        <div class="form-group">
+                            <label for="anthropic">
+                                <i class="fas fa-brain"></i> Anthropic API Key
+                            </label>
+                            <input type="password" id="anthropic" name="anthropic" placeholder="sk-ant-..." value="<%= apiKeys.anthropic || '' %>">
+                            <small>
+                                Get your API key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a>
+                            </small>
                         </div>
-                        <div class="status-item">
-                            <span class="status-label">Cohere:</span>
-                            <span class="status-value <%= apiKeys.cohere ? 'configured' : 'not-configured' %>">
-                                <%= apiKeys.cohere ? '✓ Configured' : '⚠ Not Configured' %>
-                            </span>
+
+                        <div class="form-group">
+                            <label for="google">
+                                <i class="fab fa-google"></i> Google API Key
+                            </label>
+                            <input type="password" id="google" name="google" placeholder="AIza..." value="<%= apiKeys.google || '' %>">
+                            <small>
+                                Get your API key from <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a>
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="cohere">
+                                <i class="fas fa-microchip"></i> Cohere API Key
+                            </label>
+                            <input type="password" id="cohere" name="cohere" placeholder="..." value="<%= apiKeys.cohere || '' %>">
+                            <small>
+                                Get your API key from <a href="https://dashboard.cohere.com/api-keys" target="_blank">Cohere Dashboard</a>
+                            </small>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-buttons">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save API Keys
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                                <i class="fas fa-trash"></i> Clear Form
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Help Section -->
+                    <div class="help-section">
+                        <h3><i class="fas fa-question-circle"></i> Need Help?</h3>
+                        <div class="help-grid">
+                            <div class="help-item">
+                                <h4><i class="fab fa-openai"></i> OpenAI</h4>
+                                <p>Sign up at OpenAI and create an API key. GPT-3.5 Turbo is included in the free tier.</p>
+                            </div>
+                            <div class="help-item">
+                                <h4><i class="fas fa-brain"></i> Anthropic</h4>
+                                <p>Create an account at Anthropic and generate an API key for Claude models.</p>
+                            </div>
+                            <div class="help-item">
+                                <h4><i class="fab fa-google"></i> Google</h4>
+                                <p>Visit Google AI Studio to create an API key for Gemini models.</p>
+                            </div>
+                            <div class="help-item">
+                                <h4><i class="fas fa-microchip"></i> Cohere</h4>
+                                <p>Sign up at Cohere and generate an API key for their language models.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                <div class="info-section">
-                    <h3>Important Notes</h3>
-                    <ul>
-                        <li>API keys are stored locally in memory for this session</li>
-                        <li>Keys are not saved permanently - you'll need to re-enter them after restarting the server</li>
-                        <li>For production use, consider using environment variables or a secure database</li>
-                        <li>Never share your API keys publicly</li>
-                    </ul>
-                </div>
             </div>
-        </main>
+        </div>
+    </main>
 
-        <footer class="footer">
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
             <p>&copy; 2024 AI Chatbot. Built with Express, EJS, and modern web technologies.</p>
-        </footer>
-    </div>
+        </div>
+    </footer>
 
+    <!-- Scripts -->
+    <script src="/js/main.js"></script>
     <script src="/js/settings.js"></script>
+    
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const nav = document.querySelector('.nav-menu');
+            nav.classList.toggle('mobile-open');
+        }
+
+        // Add ripple effect to buttons
+        function addRippleEffect(event) {
+            const button = event.currentTarget;
+            const ripple = document.createElement('span');
+            const rect = button.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = event.clientX - rect.left - size / 2;
+            const y = event.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add ripple effect to all buttons
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(button => {
+                button.addEventListener('click', addRippleEffect);
+            });
+        });
+    </script>
 </body>
 </html>

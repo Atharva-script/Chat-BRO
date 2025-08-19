@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const submitBtn = this.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
+        const originalWidth = submitBtn.offsetWidth;
+        // Lock width to prevent expansion/shrink on content change
+        submitBtn.style.width = originalWidth + 'px';
         
         try {
             // Show loading state
@@ -55,6 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update status display
                 updateStatusDisplay();
+                // Update form state (removes has-changes pulse)
+                updateFormState();
                 
                 // Show success animation
                 submitBtn.style.background = '#4CAF50';
@@ -80,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset button state
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
+            submitBtn.style.width = '';
         }
     });
     
@@ -223,19 +229,71 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Update status display
     function updateStatusDisplay() {
-        const statusItems = document.querySelectorAll('.status-value');
-        statusItems.forEach(item => {
-            const modelName = item.textContent.split(':')[0].toLowerCase();
-            const input = document.querySelector(`input[name="${modelName}"]`);
+        try {
+            console.log('Updating status display...');
+            const statusItems = document.querySelectorAll('.status-value');
+            console.log('Found status items:', statusItems.length);
             
-            if (input && input.value.trim()) {
-                item.textContent = '✓ Configured';
-                item.className = 'status-value configured';
-            } else {
-                item.textContent = '⚠ Not Configured';
-                item.className = 'status-value not-configured';
-            }
-        });
+            statusItems.forEach((item, index) => {
+                try {
+                    // Get the parent status-item to find the label
+                    const statusItem = item.closest('.status-item');
+                    if (!statusItem) {
+                        console.log(`Status item ${index}: No parent status-item found`);
+                        return;
+                    }
+                    
+                    const statusLabel = statusItem.querySelector('.status-label');
+                    if (!statusLabel) {
+                        console.log(`Status item ${index}: No status-label found`);
+                        return;
+                    }
+                    
+                    // Extract model name from the label text (e.g., "OpenAI:" -> "openai")
+                    const modelName = statusLabel.textContent.replace(':', '').toLowerCase();
+                    console.log(`Status item ${index}: Model name extracted: "${modelName}"`);
+                    
+                    // Map display names to input names
+                    const modelMapping = {
+                        'openai': 'openai',
+                        'anthropic': 'anthropic', 
+                        'google': 'google',
+                        'cohere': 'cohere'
+                    };
+                    
+                    const inputName = modelMapping[modelName];
+                    if (!inputName) {
+                        console.log(`Status item ${index}: No mapping found for model "${modelName}"`);
+                        return;
+                    }
+                    
+                    const input = document.querySelector(`input[name="${inputName}"]`);
+                    if (!input) {
+                        console.log(`Status item ${index}: Input field not found for name "${inputName}"`);
+                        return;
+                    }
+                    
+                    const hasValue = input.value.trim().length > 0;
+                    console.log(`Status item ${index}: Input "${inputName}" has value: ${hasValue}`);
+                    
+                    if (hasValue) {
+                        item.textContent = '✓ Configured';
+                        item.className = 'status-value configured';
+                    } else {
+                        item.textContent = '⚠ Not Configured';
+                        item.className = 'status-value not-configured';
+                    }
+                    
+                } catch (itemError) {
+                    console.error(`Error processing status item ${index}:`, itemError);
+                }
+            });
+            
+            console.log('Status display update completed');
+            
+        } catch (error) {
+            console.error('Error in updateStatusDisplay:', error);
+        }
     }
     
     // Add keyboard shortcuts

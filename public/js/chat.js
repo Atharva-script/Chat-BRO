@@ -1,96 +1,172 @@
-// Chat page JavaScript for AI model interaction
+// Chat interface functionality
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Chat page loaded');
+    console.log('Chat interface initialized');
     
     // DOM elements
-    const modelSelector = document.getElementById('modelSelector');
-    const chatForm = document.getElementById('chatForm');
+    const chatMessages = document.getElementById('chatMessages');
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
-    const chatMessages = document.getElementById('chatMessages');
-    const charCount = document.getElementById('charCount');
-    const typingIndicator = document.getElementById('typingIndicator');
-    const modelStatus = document.getElementById('modelStatus');
+    const modelSelect = document.getElementById('modelSelect');
+    const charCount = document.getElementById('charCount'); // may be null in compact header UI
     const currentModelInfo = document.getElementById('currentModelInfo');
-    const messageCount = document.getElementById('messageCount');
-    const connectionStatus = document.getElementById('connectionStatus');
+    const messageCount = document.getElementById('messageCount'); // may be null
+    const connectionStatus = document.getElementById('connectionStatus'); // may be null
     
-    // Chat state
+    // State variables
     let currentModel = '';
-    let messageHistory = [];
     let isTyping = false;
+    let messageHistory = [
+        { type: 'system', content: 'Welcome! Select an AI model to start chatting.', timestamp: Date.now() }
+    ];
     
     // Initialize chat
     initializeChat();
     
+    // Event listeners
+    modelSelect.addEventListener('change', handleModelChange);
+    messageInput.addEventListener('input', handleInputChange);
+    messageInput.addEventListener('keypress', handleKeyPress);
+    
+    // Initialize chat functionality
     function initializeChat() {
         console.log('Initializing chat...');
         
-        // Add event listeners
-        modelSelector.addEventListener('change', handleModelChange);
-        chatForm.addEventListener('submit', handleMessageSubmit);
-        messageInput.addEventListener('input', handleInputChange);
-        messageInput.addEventListener('keydown', handleKeyDown);
-        
         // Set initial state
-        updateCharCount();
         updateMessageCount();
-        
-        // Focus on input
-        messageInput.focus();
+        updateConnectionStatus('Ready');
         
         console.log('Chat initialized successfully');
     }
+
+    // Escape HTML to prevent XSS when rendering user/AI text
+    function escapeHtml(unsafe) {
+        if (unsafe == null) return '';
+        return String(unsafe)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Convert triple backtick code blocks into styled HTML with optional language
+    function renderMessageContent(raw) {
+        const text = typeof raw === 'string' ? raw : String(raw || '');
+        const normalized = text.replace(/\r\n/g, '\n');
+        const codeBlockRegex = /```([a-zA-Z0-9#+\-._]*)?\n([\s\S]*?)```/g;
+        let html = '';
+        let lastIndex = 0;
+
+        let match;
+        while ((match = codeBlockRegex.exec(normalized)) !== null) {
+            const [full, langRaw, codeRaw] = match;
+            const before = normalized.slice(lastIndex, match.index);
+            if (before) {
+                html += `<div class="text-content">${escapeHtml(before)}</div>`;
+            }
+            const lang = (langRaw || '').trim();
+            const codeEscaped = escapeHtml(codeRaw);
+            const langClass = lang ? `language-${lang}` : '';
+            html += `
+                <div class="code-block">
+                    <button class="copy-code" title="Copy code">Copy</button>
+                    <pre><code class="${langClass}">${codeEscaped}</code></pre>
+                </div>
+            `;
+            lastIndex = match.index + full.length;
+        }
+
+        const remaining = normalized.slice(lastIndex);
+        if (remaining) {
+            html += `<div class="text-content">${escapeHtml(remaining)}</div>`;
+        }
+
+        return html || `<div class="text-content"></div>`;
+    }
+
+    // Enhance a newly added message element: syntax highlight and copy buttons
+    function enhanceMessage(messageElement) {
+        try {
+            const codeBlocks = messageElement.querySelectorAll('pre code');
+            if (window.hljs && codeBlocks.length) {
+                codeBlocks.forEach(codeEl => {
+                    window.hljs.highlightElement(codeEl);
+                });
+            }
+        } catch (e) {
+            console.warn('Highlighting failed:', e);
+        }
+    }
+
+    // Copy code handler (event delegation)
+    chatMessages.addEventListener('click', async function(e) {
+        const target = e.target;
+        if (target && target.classList && target.classList.contains('copy-code')) {
+            const container = target.closest('.code-block');
+            const codeEl = container && container.querySelector('pre code');
+            if (!codeEl) return;
+            const codeText = codeEl.innerText;
+            const original = target.textContent;
+            try {
+                await navigator.clipboard.writeText(codeText);
+                target.textContent = 'Copied';
+                setTimeout(() => { target.textContent = original; }, 1200);
+            } catch (err) {
+                console.error('Copy failed:', err);
+                target.textContent = 'Failed';
+                setTimeout(() => { target.textContent = original; }, 1200);
+            }
+        }
+    });
     
     // Handle model selection change
     function handleModelChange(e) {
-        const selectedModel = e.target.value;
-        console.log('Model changed to:', selectedModel);
+        console.log('Model selection changed');
+        currentModel = e.target.value;
+        if (currentModelInfo) {
+            currentModelInfo.textContent = currentModel ? getModelDisplayName(currentModel) : 'None selected';
+        }
         
-        if (selectedModel) {
-            currentModel = selectedModel;
-            currentModelInfo.textContent = getModelDisplayName(selectedModel);
-            modelStatus.textContent = '✓ Connected';
-            modelStatus.className = 'model-status configured';
-            
-            // Enable chat
-            sendButton.disabled = false;
-            messageInput.disabled = false;
-            connectionStatus.textContent = 'Ready';
-            
-            // Add system message
-            addSystemMessage(`Connected to ${getModelDisplayName(selectedModel)}. You can now start chatting!`);
-            
-            // Update model info
-            updateModelInfo();
-            
-            console.log('Model selected and chat enabled');
-            
-        } else {
-            currentModel = '';
-            currentModelInfo.textContent = 'None selected';
-            modelStatus.textContent = '⚠ No model selected';
-            modelStatus.className = 'model-status not-configured';
-            
-            // Disable chat
-            sendButton.disabled = true;
-            messageInput.disabled = true;
-            connectionStatus.textContent = 'No model selected';
-            
-            console.log('No model selected, chat disabled');
+        // Update button state
+        updateSendButtonState();
+        
+        console.log('Model changed to:', currentModel);
+    }
+    
+    // Handle message input changes
+    function handleInputChange(e) {
+        console.log('Message input changed');
+        const message = e.target.value;
+        
+        // Update character count
+        if (charCount) {
+            charCount.textContent = `${message.length}/500`;
+        }
+        
+        // Update button state
+        updateSendButtonState();
+        
+        console.log('Message length:', message.length);
+    }
+    
+    // Handle key press in input
+    function handleKeyPress(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!sendButton.disabled) {
+                handleMessageSubmit(e);
+            }
         }
     }
     
-    // Handle message submission
-    async function handleMessageSubmit(e) {
+    // Handle form submission
+    function handleMessageSubmit(e) {
         e.preventDefault();
         console.log('Message form submitted');
         
         const message = messageInput.value.trim();
         console.log('Message:', message);
-        console.log('Current model:', currentModel);
-        console.log('Is typing:', isTyping);
         
         if (!message) {
             console.log('No message to send');
@@ -99,274 +175,205 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!currentModel) {
             console.log('No model selected');
-            showToast('Please select an AI model first', 'warning');
+            utils.showToast('Please select an AI model first', 'warning');
             return;
         }
         
-        if (isTyping) {
-            console.log('Already typing, ignoring submission');
-            return;
+        // Add user message to chat
+        addUserMessage(message);
+        
+        // Clear input
+        messageInput.value = '';
+        if (charCount) {
+            charCount.textContent = '0/500';
         }
+        
+        // Update button state
+        updateSendButtonState();
+        
+        // Send to AI
+        sendMessageToAI(message);
+        
+        console.log('Message sent and response received successfully');
+    }
+    
+    // Send message to AI model
+    async function sendMessageToAI(message) {
+        console.log('Sending message to AI...');
         
         try {
-            // Add user message to chat
-            addUserMessage(message);
-            
-            // Clear input and update count
-            messageInput.value = '';
-            updateCharCount();
-            
             // Show typing indicator
             showTypingIndicator();
+            updateConnectionStatus('Connecting...');
             
-            console.log('Sending message to AI...');
+            // Make API request
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    model: currentModel
+                })
+            });
             
-            // Send message to AI
-            const response = await sendMessageToAI(message, currentModel);
+            const data = await response.json();
             
-            // Hide typing indicator
-            hideTypingIndicator();
-            
-            // Add AI response
-            addAIMessage(response);
-            
-            // Update message count
-            updateMessageCount();
-            
-            // Scroll to bottom
-            scrollToBottom();
-            
-            console.log('Message sent and response received successfully');
+            if (response.ok) {
+                // Add AI response
+                addAIMessage(data.response);
+                updateConnectionStatus('Connected');
+            } else {
+                // Handle error
+                addSystemMessage(`Error: ${data.error}`);
+                updateConnectionStatus('Error');
+            }
             
         } catch (error) {
             console.error('Error sending message:', error);
+            addSystemMessage(`Network error: ${error.message}`);
+            updateConnectionStatus('Disconnected');
+        } finally {
+            // Hide typing indicator
             hideTypingIndicator();
-            
-            // Show error message
-            addSystemMessage(`Error: ${error.message}`, 'error');
-            
-            // Update connection status
-            connectionStatus.textContent = 'Error occurred';
-            connectionStatus.style.color = '#f44336';
-            
-            // Reset after delay
-            setTimeout(() => {
-                connectionStatus.textContent = 'Ready';
-                connectionStatus.style.color = '';
-            }, 3000);
         }
-    }
-    
-    // Handle input changes
-    function handleInputChange() {
-        updateCharCount();
-        
-        // Enable/disable send button based on input
-        const hasText = messageInput.value.trim().length > 0;
-        const hasModel = currentModel !== '';
-        
-        sendButton.disabled = !hasText || !hasModel || isTyping;
-        
-        console.log('Input changed - hasText:', hasText, 'hasModel:', hasModel, 'isTyping:', isTyping);
-    }
-    
-    // Handle keyboard shortcuts
-    function handleKeyDown(e) {
-        // Enter to send (Shift+Enter for new line)
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            console.log('Enter key pressed, attempting to submit');
-            if (!sendButton.disabled) {
-                chatForm.dispatchEvent(new Event('submit'));
-            } else {
-                console.log('Send button is disabled, cannot submit');
-            }
-        }
-        
-        // Ctrl/Cmd + Enter to send
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            e.preventDefault();
-            console.log('Ctrl+Enter pressed, attempting to submit');
-            if (!sendButton.disabled) {
-                chatForm.dispatchEvent(new Event('submit'));
-            } else {
-                console.log('Send button is disabled, cannot submit');
-            }
-        }
-    }
-    
-    // Send message to AI API
-    async function sendMessageToAI(message, model) {
-        console.log('Making API request to /api/chat');
-        console.log('Request payload:', { message, model });
-        
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message, model })
-        });
-        
-        console.log('API response status:', response.status);
-        console.log('API response headers:', response.headers);
-        
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('API error response:', errorData);
-            throw new Error(errorData.error || 'Failed to get response from AI');
-        }
-        
-        const data = await response.json();
-        console.log('API success response:', data);
-        return data.response;
     }
     
     // Add user message to chat
-    function addUserMessage(message) {
-        console.log('Adding user message:', message);
-        const messageElement = createMessageElement(message, 'user');
-        chatMessages.appendChild(messageElement);
+    function addUserMessage(content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                ${renderMessageContent(content)}
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        enhanceMessage(messageDiv);
         
         // Add to history
         messageHistory.push({
             type: 'user',
-            content: message,
-            timestamp: new Date()
+            content: content,
+            timestamp: Date.now()
         });
         
-        // Scroll to bottom
-        scrollToBottom();
+        // Update counts and scroll
+        updateMessageCount();
+        scrollToBottomDelayed(150);
     }
     
     // Add AI message to chat
-    function addAIMessage(message) {
-        console.log('Adding AI message:', message);
-        const messageElement = createMessageElement(message, 'ai');
-        chatMessages.appendChild(messageElement);
+    function addAIMessage(content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai';
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                ${renderMessageContent(content)}
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        enhanceMessage(messageDiv);
         
         // Add to history
         messageHistory.push({
             type: 'ai',
-            content: message,
-            timestamp: new Date()
+            content: content,
+            timestamp: Date.now()
         });
         
-        // Scroll to bottom
-        scrollToBottom();
+        // Update counts and scroll
+        updateMessageCount();
+        forceScrollToBottom();
     }
     
     // Add system message to chat
-    function addSystemMessage(message, type = 'info') {
-        console.log('Adding system message:', message, 'Type:', type);
-        const messageElement = createMessageElement(message, 'system', type);
-        chatMessages.appendChild(messageElement);
+    function addSystemMessage(content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message system';
+        messageDiv.innerHTML = `
+            <div class="message-content">
+                ${renderMessageContent(content)}
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        enhanceMessage(messageDiv);
         
         // Add to history
         messageHistory.push({
             type: 'system',
-            content: message,
-            timestamp: new Date()
+            content: content,
+            timestamp: Date.now()
         });
         
-        // Scroll to bottom
-        scrollToBottom();
-    }
-    
-    // Create message element
-    function createMessageElement(content, type, messageType = 'info') {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}-message`;
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-        
-        // Handle different content types
-        if (typeof content === 'string') {
-            const paragraph = document.createElement('p');
-            paragraph.textContent = content;
-            contentDiv.appendChild(paragraph);
-        } else {
-            contentDiv.appendChild(content);
-        }
-        
-        // Add timestamp
-        const timestamp = document.createElement('div');
-        timestamp.className = 'message-timestamp';
-        timestamp.textContent = utils.formatTime(new Date());
-        timestamp.style.fontSize = '0.8rem';
-        timestamp.style.color = '#999';
-        timestamp.style.marginTop = '5px';
-        contentDiv.appendChild(timestamp);
-        
-        messageDiv.appendChild(contentDiv);
-        
-        // Add animation
-        messageDiv.style.opacity = '0';
-        messageDiv.style.transform = 'translateY(20px)';
-        messageDiv.style.transition = 'all 0.3s ease';
-        
-        setTimeout(() => {
-            messageDiv.style.opacity = '1';
-            messageDiv.style.transform = 'translateY(0)';
-        }, 100);
-        
-        return messageDiv;
+        // Update counts and scroll
+        updateMessageCount();
+        scrollToBottomDelayed(100);
     }
     
     // Show typing indicator
     function showTypingIndicator() {
-        console.log('Showing typing indicator');
         isTyping = true;
-        typingIndicator.style.display = 'inline';
-        sendButton.disabled = true;
-        connectionStatus.textContent = 'AI is typing...';
+        
+        // Create typing indicator message
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator show';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+            <i class="fas fa-ellipsis-h"></i> AI is typing...
+        `;
+        
+        // Add to chat messages
+        chatMessages.appendChild(typingDiv);
+        
+        // Scroll to bottom immediately and with delay
+        forceScrollToBottom();
+        scrollToBottomDelayed(200);
+        
+        updateSendButtonState();
     }
     
     // Hide typing indicator
     function hideTypingIndicator() {
-        console.log('Hiding typing indicator');
         isTyping = false;
-        typingIndicator.style.display = 'none';
-        sendButton.disabled = false;
-        connectionStatus.textContent = 'Ready';
-        handleInputChange(); // Re-evaluate button state
+        
+        // Remove typing indicator from chat
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+        
+        // Ensure scroll position is correct after removing typing indicator
+        scrollToBottomDelayed(100);
+        
+        updateSendButtonState();
     }
     
-    // Update character count
-    function updateCharCount() {
-        const currentLength = messageInput.value.length;
-        const maxLength = messageInput.maxLength;
-        charCount.textContent = `${currentLength}/${maxLength}`;
+    // Update send button state
+    function updateSendButtonState() {
+        const hasModel = currentModel !== '';
+        const hasText = messageInput.value.trim().length > 0;
+        const canSend = hasModel && hasText && !isTyping;
         
-        // Color coding
-        if (currentLength > maxLength * 0.9) {
-            charCount.style.color = '#f44336';
-        } else if (currentLength > maxLength * 0.8) {
-            charCount.style.color = '#ff9800';
-        } else {
-            charCount.style.color = '#999';
-        }
+        sendButton.disabled = !canSend;
     }
     
     // Update message count
     function updateMessageCount() {
-        const userMessages = messageHistory.filter(msg => msg.type === 'user').length;
-        messageCount.textContent = userMessages;
+        const count = messageHistory.filter(msg => msg.type !== 'system').length;
+        if (messageCount) {
+            messageCount.textContent = count;
+        }
     }
     
-    // Update model information
-    function updateModelInfo() {
-        const modelInfo = document.querySelector('.model-availability');
-        if (modelInfo) {
-            const modelItems = modelInfo.querySelectorAll('li');
-            modelItems.forEach(item => {
-                if (item.textContent.includes(getModelDisplayName(currentModel))) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
-                }
-            });
+    // Update connection status
+    function updateConnectionStatus(status) {
+        if (connectionStatus) {
+            connectionStatus.textContent = status;
         }
     }
     
@@ -381,16 +388,49 @@ document.addEventListener('DOMContentLoaded', function() {
         return modelNames[model] || model;
     }
     
-    // Scroll chat to bottom
+    // Scroll chat to bottom with improved reliability
     function scrollToBottom() {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            // Use requestAnimationFrame for smooth scrolling
+            requestAnimationFrame(() => {
+                // Additional check to ensure scrollHeight is correct
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 0);
+            });
+        }
+    }
+    
+    // Scroll chat to bottom with delay for better UX
+    function scrollToBottomDelayed(delay = 50) {
+        setTimeout(() => {
+            scrollToBottom();
+        }, delay);
+    }
+    
+    // Force scroll to bottom with multiple attempts for reliability
+    function forceScrollToBottom() {
+        const chatMessages = document.getElementById('chatMessages');
+        if (chatMessages) {
+            // Multiple attempts to ensure scroll works
+            const scrollAttempts = [
+                () => { chatMessages.scrollTop = chatMessages.scrollHeight; },
+                () => { requestAnimationFrame(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }); },
+                () => { setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 50); }
+            ];
+            
+            scrollAttempts.forEach((attempt, index) => {
+                setTimeout(attempt, index * 25);
+            });
+        }
     }
     
     // Clear chat function (called from HTML)
     window.clearChat = function() {
         if (confirm('Are you sure you want to clear the chat history?')) {
             // Remove all messages except system messages
-            const messages = chatMessages.querySelectorAll('.message:not(.system-message)');
+            const messages = chatMessages.querySelectorAll('.message:not(.system)');
             messages.forEach(msg => msg.remove());
             
             // Clear history
@@ -402,14 +442,14 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add system message
             addSystemMessage('Chat history cleared.');
             
-            showToast('Chat history cleared!', 'info');
+            utils.showToast('Chat history cleared!', 'info');
         }
     };
     
     // Export chat function (called from HTML)
     window.exportChat = function() {
         if (messageHistory.length === 0) {
-            showToast('No messages to export!', 'warning');
+            utils.showToast('No messages to export!', 'warning');
             return;
         }
         
@@ -437,126 +477,19 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            showToast('Chat exported successfully!', 'success');
+            utils.showToast('Chat exported successfully!', 'success');
             
         } catch (error) {
             console.error('Error exporting chat:', error);
-            showToast('Failed to export chat!', 'error');
+            utils.showToast('Failed to export chat!', 'error');
         }
     };
     
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Ctrl/Cmd + L to clear chat
-        if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
-            e.preventDefault();
-            clearChat();
-        }
-        
-        // Ctrl/Cmd + E to export chat
-        if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-            e.preventDefault();
-            exportChat();
-        }
-        
-        // Ctrl/Cmd + K to focus input
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-            e.preventDefault();
-            messageInput.focus();
-        }
-    });
-    
-    // Add auto-scroll when user is typing
-    let scrollTimeout;
-    messageInput.addEventListener('input', function() {
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            if (this === document.activeElement) {
-                scrollToBottom();
-            }
-        }, 1000);
-    });
-    
-    // Add message highlighting on hover
-    chatMessages.addEventListener('mouseover', function(e) {
-        const message = e.target.closest('.message');
-        if (message) {
-            message.style.transform = 'scale(1.01)';
-            message.style.transition = 'transform 0.2s ease';
-        }
-    });
-    
-    chatMessages.addEventListener('mouseout', function(e) {
-        const message = e.target.closest('.message');
-        if (message) {
-            message.style.transform = 'scale(1)';
-        }
-    });
-    
-    // Add message search functionality
-    let searchIndex = -1;
-    let searchResults = [];
-    
-    document.addEventListener('keydown', function(e) {
-        // Ctrl/Cmd + F to search messages
-        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-            e.preventDefault();
-            const searchTerm = prompt('Search messages:');
-            if (searchTerm) {
-                searchMessages(searchTerm);
-            }
-        }
-        
-        // F3 or Ctrl/Cmd + G to find next
-        if (e.key === 'F3' || ((e.ctrlKey || e.metaKey) && e.key === 'g')) {
-            e.preventDefault();
-            if (searchResults.length > 0) {
-                findNext();
-            }
-        }
-    });
-    
-    function searchMessages(term) {
-        searchResults = [];
-        const messages = chatMessages.querySelectorAll('.message-content');
-        
-        messages.forEach((msg, index) => {
-            if (msg.textContent.toLowerCase().includes(term.toLowerCase())) {
-                searchResults.push(index);
-            }
-        });
-        
-        if (searchResults.length > 0) {
-            searchIndex = 0;
-            highlightMessage(searchResults[0]);
-            showToast(`Found ${searchResults.length} results. Press F3 for next.`, 'info');
-        } else {
-            showToast('No results found.', 'warning');
-        }
+    // Add form submit event listener
+    const chatForm = document.getElementById('chatForm');
+    if (chatForm) {
+        chatForm.addEventListener('submit', handleMessageSubmit);
     }
     
-    function findNext() {
-        if (searchResults.length === 0) return;
-        
-        searchIndex = (searchIndex + 1) % searchResults.length;
-        highlightMessage(searchResults[searchIndex]);
-    }
-    
-    function highlightMessage(index) {
-        // Remove previous highlights
-        chatMessages.querySelectorAll('.message-content').forEach(msg => {
-            msg.style.background = '';
-            msg.style.border = '';
-        });
-        
-        // Highlight current result
-        const messages = chatMessages.querySelectorAll('.message-content');
-        if (messages[index]) {
-            messages[index].style.background = '#fff3cd';
-            messages[index].style.border = '2px solid #ffc107';
-            messages[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
-    
-    console.log('Chat functionality initialized');
+    console.log('Chat interface setup complete');
 });
