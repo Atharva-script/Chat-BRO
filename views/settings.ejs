@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot - Settings</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>⚙️ Settings</h1>
+            <p>Configure your AI model API keys</p>
+        </header>
+
+        <nav class="navigation">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/chat" class="nav-link">Chat</a>
+            <a href="/settings" class="nav-link active">Settings</a>
+        </nav>
+
+        <main class="main-content">
+            <div class="settings-section">
+                <h2>API Key Configuration</h2>
+                <p>Enter your API keys for the AI models you want to use. You can get these keys from their respective platforms:</p>
+                
+                <div class="api-keys-form">
+                    <form id="apiKeysForm">
+                        <div class="form-group">
+                            <label for="openai">OpenAI API Key</label>
+                            <input type="password" id="openai" name="openai" value="<%= apiKeys.openai %>" placeholder="sk-...">
+                            <small>Get your key from <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI Platform</a></small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="anthropic">Anthropic API Key</label>
+                            <input type="password" id="anthropic" name="anthropic" value="<%= apiKeys.anthropic %>" placeholder="sk-ant-...">
+                            <small>Get your key from <a href="https://console.anthropic.com/" target="_blank">Anthropic Console</a></small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="google">Google API Key</label>
+                            <input type="password" id="google" name="google" value="<%= apiKeys.google %>" placeholder="AIza...">
+                            <small>Get your key from <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a></small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cohere">Cohere API Key</label>
+                            <input type="password" id="cohere" name="cohere" value="<%= apiKeys.cohere %>" placeholder="...">
+                            <small>Get your key from <a href="https://dashboard.cohere.ai/api-keys" target="_blank">Cohere Dashboard</a></small>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Save API Keys</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearForm()">Clear All</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="status-display">
+                    <h3>Current Status</h3>
+                    <div class="status-grid">
+                        <div class="status-item">
+                            <span class="status-label">OpenAI:</span>
+                            <span class="status-value <%= apiKeys.openai ? 'configured' : 'not-configured' %>">
+                                <%= apiKeys.openai ? '✓ Configured' : '⚠ Not Configured' %>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Anthropic:</span>
+                            <span class="status-value <%= apiKeys.anthropic ? 'configured' : 'not-configured' %>">
+                                <%= apiKeys.anthropic ? '✓ Configured' : '⚠ Not Configured' %>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Google:</span>
+                            <span class="status-value <%= apiKeys.google ? 'configured' : 'not-configured' %>">
+                                <%= apiKeys.google ? '✓ Configured' : '⚠ Not Configured' %>
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Cohere:</span>
+                            <span class="status-value <%= apiKeys.cohere ? 'configured' : 'not-configured' %>">
+                                <%= apiKeys.cohere ? '✓ Configured' : '⚠ Not Configured' %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>Important Notes</h3>
+                    <ul>
+                        <li>API keys are stored locally in memory for this session</li>
+                        <li>Keys are not saved permanently - you'll need to re-enter them after restarting the server</li>
+                        <li>For production use, consider using environment variables or a secure database</li>
+                        <li>Never share your API keys publicly</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 AI Chatbot. Built with Express, EJS, and modern web technologies.</p>
+        </footer>
+    </div>
+
+    <script src="/js/settings.js"></script>
+</body>
+</html>

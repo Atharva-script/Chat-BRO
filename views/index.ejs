@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot - Home</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🤖 AI Chatbot</h1>
+            <p>Your intelligent conversation companion powered by multiple AI models</p>
+        </header>
+
+        <nav class="navigation">
+            <a href="/" class="nav-link active">Home</a>
+            <a href="/chat" class="nav-link">Chat</a>
+            <a href="/settings" class="nav-link">Settings</a>
+        </nav>
+
+        <main class="main-content">
+            <div class="welcome-section">
+                <h2>Welcome to AI Chatbot!</h2>
+                <p>This chatbot application allows you to interact with various AI models including:</p>
+                
+                <div class="ai-models">
+                    <div class="model-card">
+                        <h3>OpenAI GPT</h3>
+                        <p>Powered by GPT-3.5 Turbo</p>
+                        <span class="status <%= apiKeys.openai ? 'configured' : 'not-configured' %>">
+                            <%= apiKeys.openai ? '✓ Configured' : '⚠ Not Configured' %>
+                        </span>
+                    </div>
+                    
+                    <div class="model-card">
+                        <h3>Anthropic Claude</h3>
+                        <p>Powered by Claude 3 Haiku</p>
+                        <span class="status <%= apiKeys.anthropic ? 'configured' : 'not-configured' %>">
+                            <%= apiKeys.anthropic ? '✓ Configured' : '⚠ Not Configured' %>
+                        </span>
+                    </div>
+                    
+                    <div class="model-card">
+                        <h3>Google Gemini</h3>
+                        <p>Powered by Gemini Pro</p>
+                        <span class="status <%= apiKeys.google ? 'configured' : 'not-configured' %>">
+                            <%= apiKeys.google ? '✓ Configured' : '⚠ Not Configured' %>
+                        </span>
+                    </div>
+                    
+                    <div class="model-card">
+                        <h3>Cohere</h3>
+                        <p>Powered by Command model</p>
+                        <span class="status <%= apiKeys.cohere ? 'configured' : 'not-configured' %>">
+                            <%= apiKeys.cohere ? '✓ Configured' : '⚠ Not Configured' %>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="cta-buttons">
+                    <a href="/settings" class="btn btn-primary">Configure API Keys</a>
+                    <a href="/chat" class="btn btn-secondary">Start Chatting</a>
+                </div>
+            </div>
+
+            <div class="features-section">
+                <h2>Features</h2>
+                <div class="features-grid">
+                    <div class="feature">
+                        <h3>🔑 Multiple AI Models</h3>
+                        <p>Support for OpenAI, Anthropic, Google, and Cohere APIs</p>
+                    </div>
+                    <div class="feature">
+                        <h3>💬 Real-time Chat</h3>
+                        <p>Interactive conversation interface with AI models</p>
+                    </div>
+                    <div class="feature">
+                        <h3>⚙️ Easy Configuration</h3>
+                        <p>Simple API key management for all supported models</p>
+                    </div>
+                    <div class="feature">
+                        <h3>🎨 Modern UI</h3>
+                        <p>Clean and responsive design for optimal user experience</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 AI Chatbot. Built with Express, EJS, and modern web technologies.</p>
+        </footer>
+    </div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chatbot - Chat</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>💬 AI Chat</h1>
+            <p>Chat with your configured AI models</p>
+        </header>
+
+        <nav class="navigation">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/chat" class="nav-link active">Chat</a>
+            <a href="/settings" class="nav-link">Settings</a>
+        </nav>
+
+        <main class="main-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>Select AI Model</h2>
+                    <div class="model-selector">
+                        <select id="modelSelector">
+                            <option value="">Choose a model...</option>
+                            <option value="openai" <%= apiKeys.openai ? '' : 'disabled' %>>OpenAI GPT</option>
+                            <option value="anthropic" <%= apiKeys.anthropic ? '' : 'disabled' %>>Anthropic Claude</option>
+                            <option value="google" <%= apiKeys.google ? '' : 'disabled' %>>Google Gemini</option>
+                            <option value="cohere" <%= apiKeys.cohere ? '' : 'disabled' %>>Cohere</option>
+                        </select>
+                        <span class="model-status" id="modelStatus"></span>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message system-message">
+                        <div class="message-content">
+                            <p>👋 Welcome! Select an AI model from the dropdown above to start chatting. Make sure you've configured the API keys in the Settings page.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <form id="chatForm" class="chat-form">
+                        <div class="input-group">
+                            <input type="text" id="messageInput" placeholder="Type your message here..." maxlength="500">
+                            <button type="submit" id="sendButton" class="btn btn-primary" disabled>
+                                <span class="btn-text">Send</span>
+                                <span class="btn-loading" style="display: none;">⏳</span>
+                            </button>
+                        </div>
+                        <div class="input-info">
+                            <span class="char-count" id="charCount">0/500</span>
+                            <span class="typing-indicator" id="typingIndicator" style="display: none;">AI is typing...</span>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="chat-controls">
+                    <button class="btn btn-secondary" onclick="clearChat()">Clear Chat</button>
+                    <button class="btn btn-secondary" onclick="exportChat()">Export Chat</button>
+                </div>
+            </div>
+
+            <div class="chat-info">
+                <h3>Chat Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Current Model:</strong>
+                        <span id="currentModelInfo">None selected</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Messages:</strong>
+                        <span id="messageCount">0</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Status:</strong>
+                        <span id="connectionStatus">Ready</span>
+                    </div>
+                </div>
+                
+                <div class="model-availability">
+                    <h4>Available Models:</h4>
+                    <ul>
+                        <li class="<%= apiKeys.openai ? 'available' : 'unavailable' %>">
+                            OpenAI GPT: <%= apiKeys.openai ? '✓ Available' : '⚠ No API Key' %>
+                        </li>
+                        <li class="<%= apiKeys.anthropic ? 'available' : 'unavailable' %>">
+                            Anthropic Claude: <%= apiKeys.anthropic ? '✓ Available' : '⚠ No API Key' %>
+                        </li>
+                        <li class="<%= apiKeys.google ? 'available' : 'unavailable' %>">
+                            Google Gemini: <%= apiKeys.google ? '✓ Available' : '⚠ No API Key' %>
+                        </li>
+                        <li class="<%= apiKeys.cohere ? 'available' : 'unavailable' %>">
+                            Cohere: <%= apiKeys.cohere ? '✓ Available' : '⚠ No API Key' %>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 AI Chatbot. Built with Express, EJS, and modern web technologies.</p>
+        </footer>
+    </div>
+
+    <script src="/js/chat.js"></script>
+</body>
+</html>
