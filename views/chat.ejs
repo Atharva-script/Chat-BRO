@@ -20,8 +20,8 @@
                 <div class="logo">
                     <img src="/images/logo.png" alt="ChatBRO logo" class="logo-image"> ChatBRO
                 </div>
-                <nav>
-                    <ul class="nav-menu">
+                <nav aria-label="Main navigation">
+                    <ul class="nav-menu" id="mainNavMenu">
                         <li><a href="/">Home</a></li>
                         <li><a href="/chat" class="active">Chat</a></li>
                         <li><a href="/settings">Settings</a></li>
@@ -48,7 +48,7 @@
                         <i class="fas fa-paper-plane"></i>
                     </button>
                 </form>
-                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+                <button class="mobile-menu-toggle" aria-label="Open navigation menu" aria-controls="mainNavMenu" aria-expanded="false" onclick="toggleMobileMenu(this)">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
@@ -97,9 +97,13 @@
     
     <script>
         // Mobile menu toggle
-        function toggleMobileMenu() {
-            const nav = document.querySelector('.nav-menu');
+        function toggleMobileMenu(btn) {
+            const nav = document.getElementById('mainNavMenu');
             nav.classList.toggle('mobile-open');
+            if (btn) {
+                const expanded = nav.classList.contains('mobile-open');
+                btn.setAttribute('aria-expanded', expanded);
+            }
         }
         
         // Add ripple effect to buttons
